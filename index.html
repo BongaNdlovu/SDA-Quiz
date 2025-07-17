@@ -330,23 +330,27 @@
         }
         
         .btn.exit {
-            background: #000;
-            color: #fff;
+            background: #fff;
+            color: #dc2626;
+            border: 2px solid #dc2626;
         }
         
         .btn.skip {
             background: #fff;
             color: #dc2626;
+            border: 2px solid #dc2626;
         }
         
         .btn.hint {
-            background: #7f1d1d;
-            color: #fff;
+            background: #fff;
+            color: #7f1d1d;
+            border: 2px solid #7f1d1d;
         }
         
-        .btn.next {
+        .btn.next, .btn.play-again {
             background: #dc2626;
             color: #fff;
+            border: 2px solid #fff;
         }
         
         .game-over {
@@ -433,8 +437,9 @@
         }
         
         .btn.download {
-            background: #000;
-            color: #fff;
+            background: #fff;
+            color: #000;
+            border: 2px solid #000;
         }
         
         .comic-cloud {
@@ -768,7 +773,7 @@
         let blueScore = 0;
         let blackScore = 0;
         let currentTeam = 'blue';
-        let timer;
+        let timer = null;
         let timeLeft = 15;
         let gameActive = false;
         let selectedOption = null;
@@ -992,22 +997,24 @@
         
         // Start timer for current question
         function startTimer() {
-            // Defensively clear any existing timer to ensure a clean start and smoothness
-            clearInterval(timer);
+            clearInterval(timer); // Always clear any previous timer
+            stopTickSound();
 
             timeLeft = 15;
             timerDisplay.textContent = timeLeft;
-            
+
             timer = setInterval(() => {
                 timeLeft--;
                 timerDisplay.textContent = timeLeft;
-                
+
+                if (timeLeft > 0) {
+                    playAudio('tick');
+                }
+
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    stopTickSound(); // Stop the last tick sound
+                    stopTickSound();
                     timeUp();
-                } else {
-                    playAudio('tick'); // Only play tick if time is still running
                 }
             }, 1000);
         }
@@ -1046,6 +1053,7 @@
             if (!gameActive) return;
             
             clearInterval(timer);
+            stopTickSound();
             streak = 0;
             if (mode === 'solo') {
                 document.getElementById('streak').textContent = streak;
@@ -1084,6 +1092,7 @@
             if (!gameActive) return;
             
             clearInterval(timer);
+            stopTickSound();
             currentQuestionIndex++;
             
             if (mode === 'teams') {
