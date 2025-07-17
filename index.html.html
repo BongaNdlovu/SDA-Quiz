@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDA Trivia Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(120deg, #fff 0%, #f5f5f5 60%, #ffe5e5 100%);
+            color: #222;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(circle at 10px 10px, rgba(220, 38, 38, 0.10) 1px, transparent 2px),
+                radial-gradient(circle at 30px 30px, rgba(0,0,0,0.05) 1px, transparent 2px);
+            background-size: 40px 40px;
+            opacity: 0.5;
+            z-index: -1;
+        }
+        .container {
+            width: 100%; max-width: 800px; background: #fff;
+            border-radius: 18px; padding: 32px 18px 32px 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.09);
+            margin-top: 24px; position: relative; overflow: hidden;
+            border: 3px solid #dc2626;
+        }
+        h1 {
+            font-family: 'Bangers', cursive;
+            font-size: 3.7rem; letter-spacing: 2px; text-align: center;
+            color: #dc2626;
+            text-shadow: 3px 3px 0 #fff, 5px 5px 0 #000;
+            margin-bottom: 22px; transform: rotate(-2deg);
+        }
+        .intro {
+            text-align: center; font-size: 1.25rem; margin-bottom: 32px;
+            padding: 0 10px; line-height: 1.6; color: #222; background: #fff; border-radius: 8px;
+        }
+        .mode-selection { display: flex; justify-content: center; gap: 20px; margin-bottom: 32px; flex-wrap: wrap; }
+        .mode-btn { background: #fff; color: #dc2626; border: 2px solid #dc2626; border-radius: 12px; font-family: 'Bangers', cursive; font-size: 1.35rem; font-weight: bold; padding: 16px 32px; cursor: pointer; transition: all 0.2s; letter-spacing: 1px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(220,38,38,0.04); }
+        .mode-btn.solo { background: #fff; color: #dc2626; }
+        .mode-btn.teams { background: #222; color: #fff; }
+        .mode-btn:hover, .mode-btn:focus { background: #ffe5e5; color: #222; border-color: #ff9800; transform: translateY(-2px) scale(1.04); }
+        .game-section { display: none; }
+        .game-info { background: #fff; color: #222; border: 2px solid #dc2626; display: flex; justify-content: space-between; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .team-scores { display: none; justify-content: space-around; width: 100%; font-weight: bold; }
+        .blue-team { color: #dc2626; }
+        .black-team { color: #222; }
+        .timer-container { background: #fff; color: #222; border: 2px solid #dc2626; display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 10px; margin-bottom: 20px; }
+        .timer { color: #dc2626; font-size: 1.8rem; font-weight: bold; font-family: 'Bangers', cursive; letter-spacing: 1px; }
+        .progress-container { height: 15px; background: #eee; border-radius: 10px; margin-bottom: 25px; overflow: hidden; border: 2px solid #dc2626; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #dc2626, #fff); width: 0%; transition: width 0.5s; position: relative; }
+        .question-container { background: #f9f9f9; color: #222; border: 3px solid #dc2626; padding: 25px; border-radius: 10px; margin-bottom: 25px; position: relative; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
+        .category { display: block; font-size: 1.05rem; color: #6b7280; margin-bottom: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .question-text { font-size: 1.5rem; line-height: 1.5; font-weight: bold; margin-bottom: 10px; }
+        .options-container { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
+        @media (min-width: 600px) { .options-container { grid-template-columns: 1fr 1fr; } }
+        .option { background: #fff; color: #222; border: 2px solid #dc2626; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-weight: 500; box-shadow: 0 3px 5px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; padding: 15px; }
+        .option:hover { background: #ffe5e5; color: #dc2626; transform: translateY(-3px) scale(1.03); box-shadow: 0 5px 10px rgba(220, 38, 38, 0.13); }
+        .option.selected { background: #dc2626; color: #fff; border-color: #fff; transform: scale(1.02); box-shadow: 0 0 15px rgba(220, 38, 38, 0.5); }
+        .option.incorrect { background: #000; color: #fff; border-color: #dc2626; }
+        .controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 20px; }
+        .btn { background: #fff; color: #dc2626; border: 2px solid #dc2626; border-radius: 8px; font-family: 'Bangers', cursive; font-size: 1.1rem; font-weight: bold; padding: 12px 25px; cursor: pointer; transition: all 0.2s; letter-spacing: 1px; }
+        .btn.exit { background: #222; color: #fff; }
+        .btn.skip, .btn.hint, .btn.play-again { background: #fff; color: #dc2626; }
+        .btn.next { background: #dc2626; color: #fff; }
+        .btn.download { background: #222; color: #fff; }
+        .btn:hover, .btn:focus { background: #ffe5e5; color: #222; border-color: #ff9800; transform: translateY(-2px) scale(1.04); }
+        .game-over { background: #fff; color: #222; border: 3px solid #dc2626; display: none; text-align: center; padding: 30px; border-radius: 15px; margin-top: 20px; }
+        .game-over h2 { color: #dc2626; font-family: 'Bangers', cursive; font-size: 2.5rem; margin-bottom: 20px; letter-spacing: 1px; }
+        .final-stats { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; text-align: left; background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; }
+        @media (min-width: 600px) { .final-stats { grid-template-columns: 1fr 1fr; } }
+        .stat { font-size: 1.2rem; margin-bottom: 10px; }
+        .stat-value { font-weight: bold; color: #dc2626; }
+        .stars { font-size: 2.5rem; color: #dc2626; margin: 20px 0; text-shadow: 0 0 10px #fff; }
+        .team-final { display: none; margin-top: 20px; }
+        .team-score { font-size: 1.4rem; margin: 10px 0; font-weight: bold; }
+        .winner { font-size: 2rem; color: #dc2626; margin: 20px 0; font-family: 'Bangers', cursive; letter-spacing: 1px; }
+        .game-over-controls { display: flex; justify-content: center; gap: 15px; margin-top: 25px; }
+        .comic-strip { position: absolute; top: 0; left: 0; width: 100%; height: 15px; background: repeating-linear-gradient(45deg, #fff, #fff 10px, #dc2626 10px, #dc2626 20px, #222 20px, #222 30px); animation: strip-move 20s linear infinite; z-index: -1; }
+        .comic-strip.bottom { top: auto; bottom: 0; }
+        @keyframes strip-move { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        .comic-cloud { position: absolute; background: #fff; border: 3px solid #dc2626; border-radius: 50%; box-shadow: 3px 3px 0 rgba(220,38,38,0.2); z-index: -1; }
+        .cloud-1 { width: 100px; height: 50px; top: 10%; left: 5%; animation: float 25s infinite linear; }
+        .cloud-2 { width: 150px; height: 70px; top: 25%; right: 10%; animation: float 30s infinite linear reverse; }
+        .cloud-3 { width: 80px; height: 40px; bottom: 15%; left: 15%; animation: float 20s infinite linear; }
+        @keyframes float { 0% { transform: translateX(0) translateY(0); } 25% { transform: translateX(20px) translateY(-10px); } 50% { transform: translateX(0) translateY(0); } 75% { transform: translateX(-20px) translateY(10px); } 100% { transform: translateX(0) translateY(0); } }
+        .comic-explosion { position: absolute; font-size: 3rem; z-index: 10; pointer-events: none; animation: comic-explode 1s forwards; }
+        @keyframes comic-explode { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+        .fade-in { animation: fadeIn 0.8s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .comic-word { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Bangers', cursive; font-size: 5rem; z-index: 20; pointer-events: none; opacity: 0; text-shadow: 4px 4px 0 #000; }
+        .comic-word.animate { animation: word-pop 1s forwards; }
+        @keyframes word-pop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+        /* Modal polish */
+        #profile-modal > div, #difficulty-modal > div, #sound-modal > div {
+            border: 2px solid #dc2626;
+            box-shadow: 0 8px 32px rgba(220,38,38,0.10);
+        }
+        #profile-modal, #difficulty-modal, #sound-modal {
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        #profile-modal[style*="display: flex"], #difficulty-modal[style*="display: flex"], #sound-modal[style*="display: flex"] {
+            display: flex !important;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 12px 2vw 18px 2vw; }
+            h1 { font-size: 2.2rem; }
+            .mode-btn, .btn { font-size: 1rem; padding: 10px 10px; }
+            .question-text { font-size: 1.1rem; }
+            .final-stats, .game-info { font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio Elements -->
+    <audio id="sound-correct" src="correct answer 1.wav" preload="auto"></audio>
+    <audio id="sound-wrong" src="WRONG BUZZER 7.wav" preload="auto"></audio>
+    <audio id="sound-timeup" src="Semi Impact Risers-001.wav" preload="auto"></audio>
+    <audio id="clock-ticking" src="MA_SelosoundFX_Mechanical_Clock_Ticking_1.wav" preload="auto" loop></audio>
+    <audio id="streak-sound" src="correct answer 2.wav" preload="auto"></audio>
+
+    <div class="comic-strip"></div>
+    <div class="comic-strip bottom"></div>
+    <div class="comic-cloud cloud-1"></div>
+    <div class="comic-cloud cloud-2"></div>
+    <div class="comic-cloud cloud-3"></div>
+
+    <!-- Insert new screen-based UI structure here, replacing the old container and modals -->
+    <div class="screen" id="menu-screen">
+        <h1>SDA TRIVIA CHALLENGE</h1>
+        <p class="intro">Test your knowledge from the KJV Bible! Enjoy streaks, power-ups, leaderboard, and more!</p>
+        
+        <div class="mode-selection">
+            <button class="mode-btn solo" onclick="startGame('solo')">Solo Player</button>
+            <button class="mode-btn teams" onclick="startGame('teams')">Two Teams</button>
+            <button class="mode-btn" onclick="showLeaderboard()">Leaderboard</button>
+            <button class="mode-btn" id="sound-toggle" onclick="toggleSound()">🔊 Sound On</button>
+            <button class="mode-btn" onclick="openSoundModal()">🎵 Sound Settings</button>
+        </div>
+    </div>
+
+    <div class="screen" id="game-screen" style="display:none;">
+        <div class="game-info">
+            <div id="solo-info">
+                <div>Score: <span id="score" class="stat-value">0</span></div>
+                <div>Streak: <span id="streak" class="stat-value">0</span></div>
+                <div>Question: <span id="current-question" class="stat-value">1</span>/<span id="total-questions">15</span></div>
+            </div>
+            <div class="team-scores" id="team-scores">
+                <div class="blue-team">Blue: <span id="blue-score" class="stat-value">0</span></div>
+                <div>Question: <span id="current-question-teams" class="stat-value">1</span>/<span id="total-questions-teams">15</span></div>
+                <div class="black-team">Black: <span id="black-score" class="stat-value">0</span></div>
+            </div>
+        </div>
+        <div class="timer-container">
+            <div>Time Left:</div>
+            <div id="timer" class="timer">15</div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="question-container fade-in">
+            <span id="category" class="category">[Category]</span>
+            <p id="question-text" class="question-text">Question text goes here...</p>
+        </div>
+        <div class="options-container" id="options"></div>
+        <div id="explanation" style="display:none; margin: 10px 0 20px 0; padding: 15px; background: #fffbe7; border-left: 5px solid #ff9800; border-radius: 8px; font-size: 1.1rem; color: #7c4700; box-shadow: 0 2px 8px rgba(255,152,0,0.08);"></div>
+        <div class="controls">
+            <button class="btn exit" onclick="exitGame()">Exit Game</button>
+            <button class="btn skip" onclick="skipQuestion()">Skip Question</button>
+            <button class="btn hint" onclick="showHint()">Hint (-5 points)</button>
+            <button class="btn next" id="next-btn" onclick="nextQuestion()" disabled>Next Question</button>
+            <button class="btn" id="sound-toggle-game" onclick="toggleSound()">🔊 Sound On</button>
+        </div>
+        <div class="controls" id="powerup-controls" style="justify-content:center;gap:15px;margin-top:10px;"></div>
+    </div>
+
+    <div class="screen" id="game-over-screen" style="display:none;">
+        <h2>GAME OVER!</h2>
+        <div id="solo-final">
+            <div class="final-stats">
+                <div class="stat">Your Score: <span id="final-score" class="stat-value">0</span></div>
+                <div class="stat">Correct Answers: <span id="correct-answers" class="stat-value">0</span>/<span id="total-questions-final">15</span></div>
+                <div class="stat">Longest Streak: <span id="final-streak" class="stat-value">0</span></div>
+                <div class="stat">High Score: <span id="high-score" class="stat-value">0</span></div>
+            </div>
+            <div class="stars" id="stars">★★★★★</div>
+        </div>
+        <div id="team-final" class="team-final">
+            <div class="team-score blue-team">Blue Team: <span id="final-blue" class="stat-value">0</span></div>
+            <div class="team-score black-team">Black Team: <span id="final-black" class="stat-value">0</span></div>
+            <div class="winner" id="winner"></div>
+        </div>
+        <div class="game-over-controls">
+            <button class="btn play-again" onclick="playAgain()">Play Again</button>
+            <button class="btn download" onclick="downloadAnswers()">Download Answers</button>
+        </div>
+    </div>
+
+    <div class="screen" id="leaderboard-screen" style="display:none;">
+        <h2>LEADERBOARD</h2>
+        <div id="leaderboard-list"></div>
+        <div class="game-over-controls">
+            <button class="btn play-again" onclick="playAgain()">Back to Menu</button>
+        </div>
+    </div>
+
+    <div id="comic-word" class="comic-word"></div>
+    <!-- Achievements/Badges Display (Game Over) -->
+    <div id="badges-container" style="display:none; justify-content:center; gap:12px; margin:18px 0 0 0;"></div>
+
+    <script>
+        // Questions array with difficulty and explanations
+        const questionsByDifficulty = {
+            easy: [
+                { category: 'KJV Bible', question: 'Who built the ark?', answer: 'Noah', options: ['Noah', 'Moses', 'Abraham', 'David'], explanation: 'Genesis 6:13-14 — God told Noah to build the ark.' },
+                { category: 'KJV Bible', question: 'Who was swallowed by a great fish?', answer: 'Jonah', options: ['Jonah', 'Daniel', 'Elijah', 'Peter'], explanation: 'Jonah 1:17 — Jonah was swallowed by a great fish.' },
+                { category: 'KJV Bible', question: 'Who was the mother of Jesus?', answer: 'Mary', options: ['Mary', 'Elizabeth', 'Martha', 'Sarah'], explanation: 'Matthew 1:18 — Mary was the mother of Jesus.' },
+                { category: 'KJV Bible', question: 'What did David use to defeat Goliath?', answer: 'A sling and a stone', options: ['A sword', 'A spear', 'A sling and a stone', 'A bow'], explanation: '1 Samuel 17:49 — David used a sling and a stone.' },
+                { category: 'KJV Bible', question: 'Who led the Israelites out of Egypt?', answer: 'Moses', options: ['Moses', 'Aaron', 'Joshua', 'Joseph'], explanation: 'Exodus 3:10 — God sent Moses to lead Israel out of Egypt.' },
+            ],
+            medium: [
+                { category: 'KJV Bible', question: 'Who was the only female judge of Israel?', answer: 'Deborah', options: ['Deborah', 'Esther', 'Miriam', 'Ruth'], explanation: 'Judges 4:4 — Deborah was a prophetess and judge.' },
+                { category: 'KJV Bible', question: 'Who fell asleep during Paul’s preaching and fell from a window?', answer: 'Eutychus', options: ['Eutychus', 'Tychicus', 'Barnabas', 'Timothy'], explanation: 'Acts 20:9 — Eutychus fell from the third story.' },
+                { category: 'KJV Bible', question: 'Who was the first king of Israel?', answer: 'Saul', options: ['Saul', 'David', 'Solomon', 'Samuel'], explanation: '1 Samuel 10:1 — Saul was anointed as the first king.' },
+                { category: 'KJV Bible', question: 'What was the name of Abraham’s second wife?', answer: 'Keturah', options: ['Keturah', 'Sarah', 'Hagar', 'Rebekah'], explanation: 'Genesis 25:1 — Abraham married Keturah after Sarah.' },
+                { category: 'KJV Bible', question: 'Which prophet made an axe head float?', answer: 'Elisha', options: ['Elijah', 'Elisha', 'Moses', 'Samuel'], explanation: '2 Kings 6:6 — Elisha made the iron float.' },
+            ],
+            hard: [
+                { category: 'KJV Bible', question: 'Who was the left-handed judge who killed Eglon, king of Moab?', answer: 'Ehud', options: ['Ehud', 'Shamgar', 'Gideon', 'Samson'], explanation: 'Judges 3:15-21 — Ehud was left-handed and killed Eglon.' },
+                { category: 'KJV Bible', question: 'Who was the prophet that married a prostitute?', answer: 'Hosea', options: ['Hosea', 'Isaiah', 'Jeremiah', 'Ezekiel'], explanation: 'Hosea 1:2-3 — Hosea married Gomer as God commanded.' },
+                { category: 'KJV Bible', question: 'Who was the only apostle not to die a martyr’s death?', answer: 'John', options: ['John', 'Peter', 'James', 'Andrew'], explanation: 'John 21:23 — John is believed to have died of old age.' },
+                { category: 'KJV Bible', question: 'Who was the man who carried Jesus’ cross?', answer: 'Simon of Cyrene', options: ['Simon of Cyrene', 'Joseph of Arimathea', 'Nicodemus', 'Barabbas'], explanation: 'Luke 23:26 — Simon of Cyrene carried the cross.' },
+                { category: 'KJV Bible', question: 'Which disciple found a coin in a fish’s mouth?', answer: 'Peter', options: ['Peter', 'John', 'James', 'Matthew'], explanation: 'Matthew 17:27 — Peter found a coin in the fish’s mouth.' },
+            ]
+        };
+        let questions = [];
+        let selectedDifficulty = 'medium';
+
+        // Game state
+        let mode = 'solo';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let maxStreak = 0;
+        let correctAnswers = 0;
+        let blueScore = 0;
+        let blackScore = 0;
+        let currentTeam = 'blue';
+        let timer;
+        let timeLeft = 15;
+        let gameActive = false;
+        let selectedOption = null;
+        let highScore = localStorage.getItem('highScore') || 0;
+        let activePowerUp = null;
+        let powerUpAvailable = false;
+        let doublePointsActive = false;
+        let hintUsed = false;
+        let soundOn = true;
+
+        // Bonus round logic
+        let isBonusRound = false;
+        const BONUS_ROUND_CHANCE = 0.2; // 20% chance for a bonus round
+        const BONUS_TIME_LIMIT = 5; // seconds to get double points
+
+        // Player profile logic
+        let playerProfile = {
+            name: '',
+            highScore: 0,
+            gamesPlayed: 0,
+            bestStreak: 0
+        };
+        function loadPlayerProfile() {
+            const saved = localStorage.getItem('playerProfile');
+            if (saved) {
+                playerProfile = JSON.parse(saved);
+            }
+        }
+        function savePlayerProfile() {
+            localStorage.setItem('playerProfile', JSON.stringify(playerProfile));
+        }
+        function showProfileModal() {
+            document.getElementById('profile-modal').style.display = 'flex';
+            document.getElementById('player-name-input').value = playerProfile.name || '';
+        }
+        function savePlayerName() {
+            const name = document.getElementById('player-name-input').value.trim();
+            if (!name) { alert('Please enter your name!'); return; }
+            playerProfile.name = name;
+            savePlayerProfile();
+            document.getElementById('profile-modal').style.display = 'none';
+            updatePlayerNameUI();
+            // If we were waiting to start the game, do so now
+            if (waitingToStartGame) {
+                waitingToStartGame = false;
+                initGame();
+            }
+        }
+        function updatePlayerNameUI() {
+            let el = document.getElementById('player-name-display');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'player-name-display';
+                el.style.position = 'absolute';
+                el.style.top = '10px';
+                el.style.right = '30px';
+                el.style.fontFamily = "'Bangers',cursive";
+                el.style.fontSize = '1.3rem';
+                el.style.color = '#dc2626';
+                el.style.background = '#fff';
+                el.style.padding = '6px 18px';
+                el.style.borderRadius = '8px';
+                el.style.boxShadow = '0 2px 8px rgba(220,38,38,0.08)';
+                document.body.appendChild(el);
+            }
+            el.textContent = `👤 ${playerProfile.name}`;
+        }
+        // On page load, load and apply sound settings
+        window.onload = function() {
+            loadPlayerProfile();
+            loadAchievements();
+            loadSoundSettings();
+            applySoundSettings(); // This only sets up, doesn't play until user interacts
+            showDifficultyModal();
+            updatePlayerNameUI();
+        };
+
+        // DOM elements
+        const gameSection = document.getElementById('game');
+        const modeSelection = document.querySelector('.mode-selection');
+        const soloInfo = document.getElementById('solo-info');
+        const teamScores = document.getElementById('team-scores');
+        const timerDisplay = document.getElementById('timer');
+        const progressBar = document.getElementById('progress-bar');
+        const categoryDisplay = document.getElementById('category');
+        const questionDisplay = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options');
+        const nextButton = document.getElementById('next-btn');
+        const gameOverScreen = document.getElementById('game-over');
+        const soloFinal = document.getElementById('solo-final');
+        const teamFinal = document.getElementById('team-final');
+        const comicWord = document.getElementById('comic-word');
+        const powerupControls = document.getElementById('powerup-controls');
+        const leaderboardScreen = document.getElementById('leaderboard');
+        const leaderboardList = document.getElementById('leaderboard-list');
+        const badgesContainer = document.getElementById('badges-container');
+
+        // Audio Elements
+        const soundCorrect = document.getElementById('sound-correct');
+        const soundWrong = document.getElementById('sound-wrong');
+        const soundTimeup = document.getElementById('sound-timeup');
+        const clockTicking = document.getElementById('clock-ticking');
+        const streakSound = document.getElementById('streak-sound');
+        
+        // Set total questions display (update after difficulty selection)
+        function updateTotalQuestionsDisplay() {
+            document.getElementById('total-questions').textContent = questions.length;
+            document.getElementById('total-questions-teams').textContent = questions.length;
+            document.getElementById('total-questions-final').textContent = questions.length;
+        }
+
+        // Show difficulty modal before game starts
+        function showDifficultyModal() {
+            document.getElementById('difficulty-modal').style.display = 'flex';
+        }
+        function selectDifficulty(difficulty) {
+            selectedDifficulty = difficulty;
+            questions = [...questionsByDifficulty[difficulty]];
+            document.getElementById('difficulty-modal').style.display = 'none';
+            modeSelection.style.display = 'flex';
+        }
+
+        // Sound toggle function
+        function toggleSound() {
+            soundOn = !soundOn;
+            const soundIcons = soundOn ? '🔊 Sound On' : '🔇 Sound Off';
+            document.getElementById('sound-toggle').textContent = soundIcons;
+            document.getElementById('sound-toggle-game').textContent = soundIcons;
+        }
+
+        function playSound(sound) {
+            if (soundOn) {
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Audio play failed:", e));
+            }
+        }
+        function stopSound(sound) {
+            sound.pause();
+            sound.currentTime = 0;
+        }
+
+        // Initialize the game
+        function initGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            streak = 0;
+            maxStreak = 0;
+            correctAnswers = 0;
+            blueScore = 0;
+            blackScore = 0;
+            currentTeam = 'blue';
+            timeLeft = 15;
+            gameActive = true;
+            selectedOption = null;
+            activePowerUp = null;
+            doublePointsActive = false;
+            powerUpAvailable = false;
+            hintUsed = false;
+            updateTotalQuestionsDisplay();
+            document.getElementById('score').textContent = score;
+            document.getElementById('streak').textContent = streak;
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+            document.getElementById('current-question-teams').textContent = currentQuestionIndex + 1;
+            document.getElementById('blue-score').textContent = blueScore;
+            document.getElementById('black-score').textContent = blackScore;
+            if (mode === 'solo') {
+                soloInfo.style.display = 'flex';
+                teamScores.style.display = 'none';
+                soloFinal.style.display = 'block';
+                teamFinal.style.display = 'none';
+            } else {
+                soloInfo.style.display = 'none';
+                teamScores.style.display = 'flex';
+                soloFinal.style.display = 'none';
+                teamFinal.style.display = 'block';
+            }
+            gameOverScreen.style.display = 'none';
+            leaderboardScreen.style.display = 'none';
+            loadQuestion();
+            bonusRoundsWon = 0; // Reset bonus rounds won for a new game
+        }
+
+        function startGame(selectedMode) {
+            mode = selectedMode;
+            modeSelection.style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            questions = [...questionsByDifficulty[selectedDifficulty]];
+            // Start background music softly (Detective Revelation default)
+            if (soundSettings.music === 'music3' || soundSettings.music === 'music4') {
+                applySoundSettings();
+            }
+            if (mode === 'solo') {
+                if (!playerProfile.name) {
+                    waitingToStartGame = true;
+                    showProfileModal();
+                    return;
+                }
+            }
+            initGame();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) { 
+                endGame(); 
+                return; 
+            }
+            // Bonus round: 20% chance
+            isBonusRound = Math.random() < BONUS_ROUND_CHANCE;
+            const question = questions[currentQuestionIndex];
+            categoryDisplay.textContent = `[${question.category}]` + (isBonusRound ? ' — BONUS ROUND!' : '');
+            if (isBonusRound) {
+                categoryDisplay.style.color = '#ff9800';
+                categoryDisplay.style.fontWeight = 'bold';
+                categoryDisplay.style.textShadow = '0 0 10px #fff, 0 0 20px #ff9800';
+            } else {
+                categoryDisplay.style.color = '';
+                categoryDisplay.style.fontWeight = '';
+                categoryDisplay.style.textShadow = '';
+            }
+            questionDisplay.textContent = question.question;
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+            document.getElementById('current-question-teams').textContent = currentQuestionIndex + 1;
+            
+            optionsContainer.innerHTML = '';
+            const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
+            shuffledOptions.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.onclick = () => selectOption(optionElement, option === question.answer);
+                optionsContainer.appendChild(optionElement);
+            });
+
+            nextButton.disabled = true;
+            selectedOption = null;
+            hintUsed = false;
+            // Hide explanation
+            document.getElementById('explanation').style.display = 'none';
+            document.getElementById('explanation').textContent = '';
+            startTimer();
+        }
+
+        function selectOption(element, isCorrect) {
+            if (selectedOption || !gameActive) return;
+            selectedOption = element;
+            clearInterval(timer);
+            stopSound(clockTicking);
+            progressBar.style.transition = 'none';
+
+            const allOptions = document.querySelectorAll('.option');
+            allOptions.forEach(opt => opt.onclick = null); 
+
+            let points = 10;
+            // Bonus round logic
+            if (isBonusRound && timeLeft >= (15 - BONUS_TIME_LIMIT)) {
+                points *= 2;
+                showComicWord('BONUS!', '#ff9800');
+                if (isCorrect) bonusRoundsWon++;
+            }
+            if (isCorrect) {
+                element.classList.add('selected');
+                playSound(soundCorrect);
+                showComicWord('CORRECT!', '#dc2626');
+                correctAnswers++;
+                streak++;
+                if (streak > maxStreak) maxStreak = streak;
+
+                if (mode === 'solo') {
+                    score += points;
+                    if (streak > 0 && streak % 3 === 0) {
+                        score += 5; // Streak bonus
+                        playSound(streakSound);
+                        showComicWord('STREAK!', '#ff9800');
+                    }
+                    document.getElementById('score').textContent = score;
+                    document.getElementById('streak').textContent = streak;
+                } else { // Teams mode
+                    if (currentTeam === 'blue') {
+                        blueScore += points;
+                        document.getElementById('blue-score').textContent = blueScore;
+                    } else {
+                        blackScore += points;
+                        document.getElementById('black-score').textContent = blackScore;
+                    }
+                }
+            } else {
+                element.classList.add('incorrect');
+                playSound(soundWrong);
+                showComicWord('WRONG!', '#dc2626');
+                streak = 0;
+                allOptions.forEach(opt => { if (opt.textContent === questions[currentQuestionIndex].answer) { opt.classList.add('selected'); } });
+                if (mode === 'solo') { document.getElementById('streak').textContent = streak; }
+            }
+
+            nextButton.disabled = false;
+            // Show explanation
+            const explanation = questions[currentQuestionIndex].explanation;
+            if (explanation) {
+                const expDiv = document.getElementById('explanation');
+                expDiv.textContent = explanation;
+                expDiv.style.display = 'block';
+            }
+        }
+
+        function startTimer() {
+            timeLeft = 15;
+            timerDisplay.textContent = timeLeft;
+            playSound(clockTicking);
+            
+            progressBar.style.transition = 'none';
+            progressBar.style.width = '100%';
+            setTimeout(() => {
+                progressBar.style.transition = `width ${timeLeft}s linear`;
+                progressBar.style.width = '0%';
+            }, 10);
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timeUp();
+                }
+            }, 1000);
+        }
+
+        function timeUp() {
+            if (selectedOption) return;
+            stopSound(clockTicking);
+            playSound(soundTimeup);
+            showComicWord('TIME UP!', '#dc2626');
+
+            const allOptions = document.querySelectorAll('.option');
+            allOptions.forEach(opt => {
+                opt.onclick = null;
+                if (opt.textContent === questions[currentQuestionIndex].answer) {
+                    opt.classList.add('selected');
+                }
+            });
+
+            streak = 0;
+            if (mode === 'solo') { document.getElementById('streak').textContent = streak; }
+            nextButton.disabled = false;
+        }
+
+        function skipQuestion() {
+            if (!gameActive) return;
+            clearInterval(timer);
+            stopSound(clockTicking);
+            streak = 0;
+            if (mode === 'solo') { document.getElementById('streak').textContent = streak; }
+            nextQuestion();
+        }
+
+        function showHint() {
+            if (!gameActive || selectedOption || hintUsed) return;
+            hintUsed = true;
+            if (mode === 'solo') {
+                if (score >= 5) { score -= 5; document.getElementById('score').textContent = score; } else { alert("Not enough points for a hint!"); return; }
+            } else {
+                if (currentTeam === 'blue') {
+                    if (blueScore >= 5) { blueScore -= 5; document.getElementById('blue-score').textContent = blueScore; } else { alert("Not enough points for a hint!"); return; }
+                } else {
+                    if (blackScore >= 5) { blackScore -= 5; document.getElementById('black-score').textContent = blackScore; } else { alert("Not enough points for a hint!"); return; }
+                }
+            }
+            const answer = questions[currentQuestionIndex].answer;
+            const hint = answer.substring(0, Math.ceil(answer.length / 2)) + '...';
+            alert(`Hint: The answer starts with "${hint}"`);
+        }
+
+        function nextQuestion() {
+            if (!gameActive) return;
+            clearInterval(timer);
+            currentQuestionIndex++;
+            if (mode === 'teams') { currentTeam = currentTeam === 'blue' ? 'black' : 'blue'; }
+            loadQuestion();
+        }
+
+        function endGame() {
+            gameActive = false;
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('game-over-screen').style.display = 'block';
+            checkAndAwardAchievements();
+            renderBadges();
+            if (mode === 'solo') {
+                if (score > playerProfile.highScore) {
+                    playerProfile.highScore = score;
+                }
+                if (streak > playerProfile.bestStreak) {
+                    playerProfile.bestStreak = streak;
+                }
+                playerProfile.gamesPlayed++;
+                savePlayerProfile();
+                document.getElementById('final-score').textContent = score;
+                document.getElementById('correct-answers').textContent = correctAnswers;
+                document.getElementById('final-streak').textContent = maxStreak;
+                document.getElementById('high-score').textContent = playerProfile.highScore;
+                // Leaderboard
+                let lb = getLeaderboard();
+                if (score > 0 && (lb.length < 5 || score > lb[lb.length - 1].score)) {
+                    let name = playerProfile.name || prompt('New High Score! Enter your name:', '');
+                    if (name) {
+                        lb.push({ name, score });
+                        lb = lb.sort((a, b) => b.score - a.score).slice(0, 5);
+                        setLeaderboard(lb);
+                    }
+                }
+                const starPercentage = (correctAnswers / questions.length);
+                let numStars = Math.round(starPercentage * 5);
+                document.getElementById('stars').textContent = '★'.repeat(numStars) + '☆'.repeat(5 - numStars);
+            } else {
+                document.getElementById('final-blue').textContent = blueScore;
+                document.getElementById('final-black').textContent = blackScore;
+                if (blueScore > blackScore) {
+                    document.getElementById('winner').textContent = 'Blue Team Wins!';
+                    document.getElementById('winner').className = 'winner blue-team';
+                } else if (blackScore > blueScore) {
+                    document.getElementById('winner').textContent = 'Black Team Wins!';
+                    document.getElementById('winner').className = 'winner black-team';
+                } else {
+                    document.getElementById('winner').textContent = "It's a Tie!";
+                    document.getElementById('winner').className = 'winner';
+                }
+            }
+        }
+
+        function exitGame() { if (confirm('Are you sure you want to exit? Your progress will be lost.')) { location.reload(); } }
+        
+        function playAgain() {
+            document.getElementById('game-over-screen').style.display = 'none';
+            document.getElementById('leaderboard-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('badges-container').style.display = 'none';
+        }
+
+        function downloadAnswers() {
+            let csvContent = "data:text/csv;charset=utf-8,Category,Question,Answer\n";
+            questions.forEach(q => {
+                let row = `"${q.category}","${q.question.replace(/"/g, '""')}","${q.answer}"`;
+                csvContent += row + "\n";
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "sda_trivia_answers.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Leaderboard functions
+        function getLeaderboard() { return JSON.parse(localStorage.getItem('leaderboard') || '[]'); }
+        function setLeaderboard(lb) { localStorage.setItem('leaderboard', JSON.stringify(lb)); }
+        function showLeaderboard() {
+            document.getElementById('menu-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('game-over-screen').style.display = 'none';
+            document.getElementById('leaderboard-screen').style.display = 'block';
+            renderLeaderboard();
+        }
+        function renderLeaderboard() {
+            const lb = getLeaderboard();
+            if (!lb.length) { leaderboardList.innerHTML = '<div>No high scores yet. Be the first!</div>'; return; }
+            leaderboardList.innerHTML = lb.map((entry, i) => 
+                `<div style='margin:10px 0; font-size: 1.2rem;'><b>#${i + 1}</b> ${entry.name} — <span class='stat-value'>${entry.score} pts</span></div>`
+            ).join('');
+        }
+
+        // Animation functions
+        function showComicWord(text, color) {
+            comicWord.textContent = text;
+            comicWord.style.color = color;
+            comicWord.classList.add('animate');
+            setTimeout(() => { comicWord.classList.remove('animate'); }, 1000);
+        }
+
+        // Achievements/badges logic
+        let achievements = {
+            streak3: false,
+            perfect: false,
+            games5: false,
+            bonus3: false
+        };
+        function loadAchievements() {
+            const saved = localStorage.getItem('achievements');
+            if (saved) achievements = JSON.parse(saved);
+        }
+        function saveAchievements() {
+            localStorage.setItem('achievements', JSON.stringify(achievements));
+        }
+        function checkAndAwardAchievements() {
+            // 3+ streak in a game
+            if (playerProfile.bestStreak >= 3) achievements.streak3 = true;
+            // Perfect game (all correct)
+            if (correctAnswers === questions.length) achievements.perfect = true;
+            // 5+ games played
+            if (playerProfile.gamesPlayed >= 5) achievements.games5 = true;
+            // 3+ bonus rounds won in a game
+            if (bonusRoundsWon >= 3) achievements.bonus3 = true;
+            saveAchievements();
+        }
+        function renderBadges() {
+            const badges = [];
+            if (achievements.streak3) badges.push(`<span title='3+ Streak'><b>🔥</b> Streak</span>`);
+            if (achievements.perfect) badges.push(`<span title='Perfect Game'><b>🌟</b> Perfect</span>`);
+            if (achievements.games5) badges.push(`<span title='5+ Games'><b>🏅</b> Veteran</span>`);
+            if (achievements.bonus3) badges.push(`<span title='3+ Bonus Rounds'><b>⚡</b> Bonus Master</span>`);
+            const container = document.getElementById('badges-container');
+            if (badges.length) {
+                container.innerHTML = badges.join(' ');
+                container.style.display = 'flex';
+            } else {
+                container.innerHTML = '';
+                container.style.display = 'none';
+            }
+        }
+        // Track bonus rounds won in a game
+        let bonusRoundsWon = 0;
+    </script>
+</body>
+</html>
