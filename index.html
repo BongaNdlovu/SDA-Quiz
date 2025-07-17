@@ -555,9 +555,75 @@
             50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
             100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
         }
+        @media (max-width: 400px) {
+            .container {
+                padding: 10px;
+            }
+            .controls {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .mode-selection {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .btn, .mode-btn {
+                width: 100%;
+                font-size: 1rem;
+                padding: 10px 0;
+            }
+            .question-container {
+                padding: 10px;
+            }
+        }
+        .btn:disabled, .mode-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+        .btn:focus, .mode-btn:focus, .option:focus {
+            outline: 3px solid #dc2626;
+            outline-offset: 2px;
+            background: #fff2;
+        }
+        .btn:active, .mode-btn:active, .option:active {
+            filter: brightness(1.2) contrast(1.1);
+            background: #fff3;
+        }
+        html {
+            font-size: 16px;
+        }
+        body {
+            font-size: 1.1rem;
+        }
+        h1 {
+            font-size: 3.5rem;
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 8vw;
+            }
+            body {
+                font-size: 3.5vw;
+            }
+        }
+        .skip-link:focus {
+            left: 10px;
+        }
+        .avatar-circle {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+            border: 2px solid #fff;
+        }
     </style>
 </head>
 <body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-link" style="position:absolute;left:-999px;top:10px;background:#fff;color:#dc2626;padding:8px 16px;z-index:2000;border-radius:8px;font-weight:bold;transition:left 0.2s;">Skip to main content</a>
     <div style="position: absolute; top: 10px; right: 10px; z-index: 1000;">
       <button id="music-toggle" class="btn" style="background:#222;color:#fff;font-size:1rem;padding:6px 16px;">Pause Music</button>
       <button id="music-mute" class="btn" style="background:#222;color:#fff;font-size:1rem;padding:6px 16px;">Mute</button>
@@ -567,11 +633,18 @@
         <form id="profile-form" style="display:flex;flex-direction:column;gap:18px;">
             <label for="player-name" style="font-size:1.1rem;">Enter your name:</label>
             <input id="player-name" type="text" maxlength="20" required style="padding:10px;font-size:1.1rem;border-radius:8px;border:2px solid #dc2626;">
+            <label for="avatar-color" style="font-size:1.1rem;">Choose your color:</label>
+            <input id="avatar-color" type="color" value="#dc2626" style="width:50px;height:40px;border:none;">
             <label for="difficulty" style="font-size:1.1rem;">Select difficulty:</label>
             <select id="difficulty" style="padding:10px;font-size:1.1rem;border-radius:8px;border:2px solid #dc2626;">
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
                 <option value="hard">Hard</option>
+            </select>
+            <label for="mode-select" style="font-size:1.1rem;">Select mode:</label>
+            <select id="mode-select" style="padding:10px;font-size:1.1rem;border-radius:8px;border:2px solid #dc2626;">
+                <option value="solo">Solo Player</option>
+                <option value="teams">Two Teams</option>
             </select>
             <button type="submit" class="btn next" style="margin-top:10px;">Continue</button>
         </form>
@@ -586,6 +659,7 @@
         <ul id="achievements-list" style="font-size:1.1rem;margin:20px 0 0 20px;"></ul>
         <button class="btn" onclick="closeAchievements()" style="margin-top:20px;">Back</button>
     </div>
+    <div id="turn-indicator" aria-live="polite" style="display:none;text-align:center;font-size:1.3rem;font-weight:bold;margin-bottom:10px;"></div>
     <div class="comic-strip"></div>
     <div class="comic-strip bottom"></div>
     
@@ -593,7 +667,7 @@
     <div class="comic-cloud cloud-2"></div>
     <div class="comic-cloud cloud-3"></div>
     
-    <div class="container fade-in">
+    <div class="container fade-in" role="main" id="main-content">
         <h1>SDA TRIVIA CHALLENGE</h1>
         <p class="intro">Test your knowledge from The Great Controversy, Counsels on Diet and Foods, Last Day Events, Music, and the KJV Bible!</p>
         
@@ -607,14 +681,14 @@
         <div id="game" class="game-section">
             <div class="game-info">
                 <div id="solo-info">
-                    <div>Score: <span id="score" class="stat-value">0</span></div>
-                    <div>Streak: <span id="streak" class="stat-value">0</span></div>
+                    <div>Score: <span id="score" class="stat-value" aria-live="polite">0</span></div>
+                    <div>Streak: <span id="streak" class="stat-value" aria-live="polite">0</span></div>
                     <div>Question: <span id="current-question" class="stat-value">1</span>/98</div>
                 </div>
                 <div class="team-scores" id="team-scores">
-                    <div class="blue-team">Blue: <span id="blue-score" class="stat-value">0</span></div>
+                    <div class="blue-team">Blue: <span id="blue-score" class="stat-value" aria-live="polite">0</span></div>
                     <div>Question: <span id="current-question-teams" class="stat-value">1</span>/98</div>
-                    <div class="black-team">Black: <span id="black-score" class="stat-value">0</span></div>
+                    <div class="black-team">Black: <span id="black-score" class="stat-value" aria-live="polite">0</span></div>
                 </div>
             </div>
             
@@ -642,7 +716,7 @@
             </div>
         </div>
         
-        <div id="game-over" class="game-over">
+        <div id="game-over" class="game-over" aria-live="assertive">
             <h2>GAME OVER!</h2>
             
             <div id="solo-final">
@@ -668,9 +742,37 @@
         </div>
     </div>
     
-    <div id="comic-word" class="comic-word"></div>
+    <div id="comic-word" class="comic-word" aria-live="assertive"></div>
     
     <script>
+        // --- Centralized Selectors ---
+        const selectors = {
+            gameSection: document.getElementById('game'),
+            modeSelection: document.querySelector('.mode-selection'),
+            soloInfo: document.getElementById('solo-info'),
+            teamScores: document.getElementById('team-scores'),
+            timerDisplay: document.getElementById('timer'),
+            progressBar: document.getElementById('progress-bar'),
+            categoryDisplay: document.getElementById('category'),
+            questionDisplay: document.getElementById('question-text'),
+            optionsContainer: document.getElementById('options'),
+            nextButton: document.getElementById('next-btn'),
+            gameOverScreen: document.getElementById('game-over'),
+            soloFinal: document.getElementById('solo-final'),
+            teamFinal: document.getElementById('team-final'),
+            comicWord: document.getElementById('comic-word'),
+            musicToggle: document.getElementById('music-toggle'),
+            musicMute: document.getElementById('music-mute'),
+            playAgainBtn: document.querySelector('.btn.play-again'),
+            hintBtn: document.querySelector('.btn.hint'),
+        };
+        // --- HTML Sanitization ---
+        function sanitizeHTML(str) {
+            return str.replace(/[&<>'"]/g, function(tag) {
+                const chars = {'&':'&amp;','<':'&lt;','>':'&gt;','\'':'&#39;','"':'&quot;'};
+                return chars[tag] || tag;
+            });
+        }
         // 1. EXPANDED QUESTIONS ARRAY (Replace the existing questions array)
         const questions = [
             // KJV Bible Questions
@@ -722,9 +824,9 @@
         // Initialize audio with error handling
         function initAudio() {
             try {
-                audioElements.correct = new Audio('correct answer 1.wav');
+                audioElements.correct = new Audio('correct_answer_1.wav');
                 audioElements.wrong = new Audio('WRONG BUZZER 7.wav');
-                audioElements.timeup = new Audio('MA_SelosoundFX_Mechanical_Clock_Ticking_1.wav');
+                audioElements.timeup = new Audio('time_up_buzzer.wav');
                 audioElements.tick = new Audio('MA_SelosoundFX_Mechanical_Clock_Ticking_1.wav');
                 audioElements.bgMusic = new Audio('2024-12-08_-_Detective_Revelation_-_www.FesliyanStudios.com.wav');
                 audioElements.bgMusic.loop = true;
@@ -780,41 +882,63 @@
         let highScore = localStorage.getItem('highScore') || 0;
         
         // DOM elements
-        const gameSection = document.getElementById('game');
-        const modeSelection = document.querySelector('.mode-selection');
-        const soloInfo = document.getElementById('solo-info');
-        const teamScores = document.getElementById('team-scores');
-        const timerDisplay = document.getElementById('timer');
-        const progressBar = document.getElementById('progress-bar');
-        const categoryDisplay = document.getElementById('category');
-        const questionDisplay = document.getElementById('question-text');
-        const optionsContainer = document.getElementById('options');
-        const nextButton = document.getElementById('next-btn');
-        const gameOverScreen = document.getElementById('game-over');
-        const soloFinal = document.getElementById('solo-final');
-        const teamFinal = document.getElementById('team-final');
-        const comicWord = document.getElementById('comic-word');
-        const tickSound = document.getElementById('sound-tick'); // This element is no longer in HTML, but kept for now
-        const bgMusic = document.getElementById('bg-music'); // This element is no longer in HTML, but kept for now
-        const musicToggle = document.getElementById('music-toggle');
-        const musicMute = document.getElementById('music-mute');
+        // const gameSection = document.getElementById('game');
+        // const modeSelection = document.querySelector('.mode-selection');
+        // const soloInfo = document.getElementById('solo-info');
+        // const teamScores = document.getElementById('team-scores');
+        // const timerDisplay = document.getElementById('timer');
+        // const progressBar = document.getElementById('progress-bar');
+        // const categoryDisplay = document.getElementById('category');
+        // const questionDisplay = document.getElementById('question-text');
+        // const optionsContainer = document.getElementById('options');
+        // const nextButton = document.getElementById('next-btn');
+        // const gameOverScreen = document.getElementById('game-over');
+        // const soloFinal = document.getElementById('solo-final');
+        // const teamFinal = document.getElementById('team-final');
+        // const comicWord = document.getElementById('comic-word');
+        // const musicToggle = document.getElementById('music-toggle');
+        // const musicMute = document.getElementById('music-mute');
         let musicPlaying = true;
         let musicMuted = false;
         
         let playerName = '';
         let selectedDifficulty = 'easy';
+        let selectedMode = 'solo'; // Added for persistent mode selection
+        let playerColor = '#dc2626'; // Added for persistent avatar color
 
         const profileScreen = document.getElementById('profile-screen');
         const profileForm = document.getElementById('profile-form');
         const playerNameInput = document.getElementById('player-name');
         const difficultySelect = document.getElementById('difficulty');
+        const modeSelect = document.getElementById('mode-select'); // Added for persistent mode selection
+        const avatarColorInput = document.getElementById('avatar-color'); // Added for persistent avatar color
 
         profileForm.onsubmit = function(e) {
             e.preventDefault();
-            playerName = playerNameInput.value.trim() || 'Player';
+            const rawName = playerNameInput.value.trim();
+            if (!rawName) {
+                if (!document.getElementById('profile-error')) {
+                    const err = document.createElement('div');
+                    err.id = 'profile-error';
+                    err.style.color = '#dc2626';
+                    err.style.marginTop = '5px';
+                    err.textContent = 'Please enter your name.';
+                    profileForm.appendChild(err);
+                }
+                playerNameInput.focus();
+                return;
+            } else {
+                const err = document.getElementById('profile-error');
+                if (err) err.remove();
+            }
+            playerName = sanitizeHTML(rawName);
             selectedDifficulty = difficultySelect.value;
+            selectedMode = modeSelect.value; // Set selectedMode from form
+            playerColor = avatarColorInput.value; // Set playerColor from form
             localStorage.setItem('lastPlayerName', playerName);
             localStorage.setItem('lastDifficulty', selectedDifficulty);
+            localStorage.setItem('lastMode', selectedMode); // Save persistent mode
+            localStorage.setItem('lastColor', playerColor); // Save persistent color
             profileScreen.style.display = 'none';
             document.querySelector('.mode-selection').style.display = 'flex';
         };
@@ -823,8 +947,12 @@
         window.onload = function() {
             const lastName = localStorage.getItem('lastPlayerName');
             const lastDiff = localStorage.getItem('lastDifficulty');
+            const lastMode = localStorage.getItem('lastMode');
+            const lastColor = localStorage.getItem('lastColor');
             if (lastName) playerNameInput.value = lastName;
             if (lastDiff) difficultySelect.value = lastDiff;
+            if (lastMode) modeSelect.value = lastMode; // Pre-fill mode
+            if (lastColor) avatarColorInput.value = lastColor; // Pre-fill color
             profileScreen.style.display = 'block';
             document.querySelector('.mode-selection').style.display = 'none';
             document.getElementById('game').style.display = 'none';
@@ -832,10 +960,11 @@
         };
 
         // Update startGame to use playerName and selectedDifficulty
-        function startGame(selectedMode) {
-            mode = selectedMode;
+        function startGame(selectedModeArg) {
+            // Use selectedMode from profile if available
+            mode = selectedModeArg || (typeof selectedMode !== 'undefined' ? selectedMode : 'solo');
             document.querySelector('.mode-selection').style.display = 'none';
-            gameSection.style.display = 'block';
+            selectors.gameSection.style.display = 'block';
             initGame();
         }
         
@@ -845,6 +974,8 @@
             initAudio();
             // Get filtered questions based on difficulty
             window.filteredQuestions = getFilteredQuestions();
+            // Shuffle filteredQuestions
+            shuffleArray(filteredQuestions);
             // Reset game state
             currentQuestionIndex = 0;
             score = 0;
@@ -858,7 +989,7 @@
             gameActive = true;
             selectedOption = null;
             // Update total question count based on filtered questions
-            const totalQuestions = filteredQuestions.length;
+            updateQuestionTotals();
             // Update UI
             document.getElementById('score').textContent = score;
             document.getElementById('streak').textContent = streak;
@@ -866,31 +997,37 @@
             document.getElementById('current-question-teams').textContent = currentQuestionIndex + 1;
             document.getElementById('blue-score').textContent = blueScore;
             document.getElementById('black-score').textContent = blackScore;
-            document.getElementById('current-question').nextSibling.textContent = '/' + totalQuestions;
-            document.getElementById('current-question-teams').nextSibling.textContent = '/' + totalQuestions;
             
             // Show appropriate sections
             if (mode === 'solo') {
-                soloInfo.style.display = 'flex';
-                teamScores.style.display = 'none';
-                soloFinal.style.display = 'block';
-                teamFinal.style.display = 'none';
+                selectors.soloInfo.style.display = 'flex';
+                selectors.teamScores.style.display = 'none';
+                selectors.soloFinal.style.display = 'block';
+                selectors.teamFinal.style.display = 'none';
             } else {
-                soloInfo.style.display = 'none';
-                teamScores.style.display = 'flex';
-                soloFinal.style.display = 'none';
-                teamFinal.style.display = 'block';
+                selectors.soloInfo.style.display = 'none';
+                selectors.teamScores.style.display = 'flex';
+                selectors.soloFinal.style.display = 'none';
+                selectors.teamFinal.style.display = 'block';
             }
             
             // Hide game over screen
-            gameOverScreen.style.display = 'none';
+            selectors.gameOverScreen.style.display = 'none';
             
             // Load first question
             loadQuestion();
         }
         
         // Load current question
+        /**
+         * Loads the current question and sets up options and UI.
+         */
         function loadQuestion() {
+            // Announce team turn change for accessibility
+            if (mode === 'teams') {
+                const turnIndicator = document.getElementById('turn-indicator');
+                turnIndicator.setAttribute('aria-live', 'polite');
+            }
             if (currentQuestionIndex >= filteredQuestions.length) {
                 endGame();
                 return;
@@ -899,13 +1036,34 @@
             const question = filteredQuestions[currentQuestionIndex];
             
             // Update UI
-            categoryDisplay.textContent = `[${question.category}]`;
-            questionDisplay.textContent = question.question;
+            selectors.categoryDisplay.textContent = `[${question.category}]`;
+            selectors.questionDisplay.textContent = question.question;
             document.getElementById('current-question').textContent = currentQuestionIndex + 1;
             document.getElementById('current-question-teams').textContent = currentQuestionIndex + 1;
             
+            // Update total questions in UI
+            updateQuestionTotals();
+            
+            // Turn indicator for teams
+            const turnIndicator = document.getElementById('turn-indicator');
+            if (mode === 'teams') {
+                turnIndicator.style.display = 'block';
+                turnIndicator.textContent = currentTeam === 'blue' ? "Blue Team's Turn!" : "Black Team's Turn!";
+                // Highlight current team score
+                document.getElementById('blue-score').parentElement.style.background = currentTeam === 'blue' ? '#fff' : 'transparent';
+                document.getElementById('blue-score').parentElement.style.color = currentTeam === 'blue' ? '#dc2626' : '#dc2626';
+                document.getElementById('black-score').parentElement.style.background = currentTeam === 'black' ? '#fff' : 'transparent';
+                document.getElementById('black-score').parentElement.style.color = currentTeam === 'black' ? '#000' : '#fff';
+            } else {
+                turnIndicator.style.display = 'none';
+                document.getElementById('blue-score').parentElement.style.background = 'transparent';
+                document.getElementById('black-score').parentElement.style.background = 'transparent';
+                document.getElementById('blue-score').parentElement.style.color = '#dc2626';
+                document.getElementById('black-score').parentElement.style.color = '#fff';
+            }
+            
             // Clear options container
-            optionsContainer.innerHTML = '';
+            selectors.optionsContainer.innerHTML = '';
             
             // Shuffle options
             const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
@@ -916,18 +1074,26 @@
                 optionElement.classList.add('option');
                 optionElement.textContent = option;
                 optionElement.onclick = () => selectOption(optionElement, option === question.answer);
-                optionsContainer.appendChild(optionElement);
+                // Accessibility: keyboard navigation
+                optionElement.tabIndex = 0;
+                optionElement.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        optionElement.click();
+                    }
+                });
+                selectors.optionsContainer.appendChild(optionElement);
                 // Fade-in effect
                 setTimeout(() => optionElement.classList.add('show'), 50);
             });
             
             // Reset UI state
-            nextButton.disabled = true;
+            selectors.nextButton.disabled = true;
             selectedOption = null;
             
             // Update progress bar
             const progressPercentage = ((currentQuestionIndex + 1) / filteredQuestions.length) * 100;
-            progressBar.style.width = `${progressPercentage}%`;
+            selectors.progressBar.style.width = `${progressPercentage}%`;
             
             // Fade-in effect for question
             const qCont = document.getElementById('question-container');
@@ -939,6 +1105,9 @@
         }
         
         // Select an option
+        /**
+         * Handles option selection, updates scores, and provides feedback.
+         */
         function selectOption(element, isCorrect) {
             if (selectedOption || !gameActive) return;
             
@@ -955,6 +1124,7 @@
                 element.classList.add('selected');
                 showComicWord('CORRECT!', '#dc2626');
                 createExplosion(element);
+                vibrate(100);
                 
                 // Update scores
                 if (mode === 'solo') {
@@ -977,6 +1147,7 @@
                 element.classList.add('incorrect');
                 showComicWord('WRONG!', '#dc2626');
                 createExplosion(element);
+                vibrate([50, 50, 50]);
                 streak = 0;
                 
                 // Highlight correct answer
@@ -992,25 +1163,28 @@
             }
             
             // Enable next button
-            nextButton.disabled = false;
+            selectors.nextButton.disabled = false;
+            // Disable hint after selection
+            selectors.hintBtn.disabled = true;
         }
         
         // Start timer for current question
         function startTimer() {
-            clearInterval(timer); // Always clear any previous timer
+            clearInterval(timer);
             stopTickSound();
-
             timeLeft = 15;
-            timerDisplay.textContent = timeLeft;
-
+            selectors.timerDisplay.textContent = timeLeft;
             timer = setInterval(() => {
                 timeLeft--;
-                timerDisplay.textContent = timeLeft;
-
-                if (timeLeft > 0) {
-                    playAudio('tick');
+                selectors.timerDisplay.textContent = timeLeft;
+                // Play tick only for 10, 9, ..., 1 (not 0)
+                if (timeLeft > 0 && timeLeft <= 10) {
+                    if (audioElements.tick) {
+                        audioElements.tick.pause();
+                        audioElements.tick.currentTime = 0;
+                        audioElements.tick.play().catch(() => {});
+                    }
                 }
-
                 if (timeLeft <= 0) {
                     clearInterval(timer);
                     stopTickSound();
@@ -1045,7 +1219,7 @@
             showComicWord('TIME UP!', '#dc2626');
             
             // Enable next button
-            nextButton.disabled = false;
+            selectors.nextButton.disabled = false;
         }
         
         // Skip current question
@@ -1062,8 +1236,12 @@
         }
         
         // Show hint
+        /**
+         * Shows a hint for the current question and applies a penalty.
+         */
         function showHint() {
-            if (!gameActive || selectedOption) return;
+            if (!gameActive || selectedOption || selectors.hintBtn.disabled) return;
+            selectors.hintBtn.disabled = true;
             
             // Apply penalty
             if (mode === 'solo') {
@@ -1072,12 +1250,22 @@
                     document.getElementById('score').textContent = score;
                 }
             } else {
-                if (currentTeam === 'blue' && blueScore >= 5) {
-                    blueScore -= 5;
-                    document.getElementById('blue-score').textContent = blueScore;
-                } else if (blackScore >= 5) {
-                    blackScore -= 5;
-                    document.getElementById('black-score').textContent = blackScore;
+                if (currentTeam === 'blue') {
+                    if (blueScore >= 5) {
+                        blueScore -= 5;
+                        document.getElementById('blue-score').textContent = blueScore;
+                    } else {
+                        alert('Blue Team does not have enough points for a hint!');
+                        return;
+                    }
+                } else {
+                    if (blackScore >= 5) {
+                        blackScore -= 5;
+                        document.getElementById('black-score').textContent = blackScore;
+                    } else {
+                        alert('Black Team does not have enough points for a hint!');
+                        return;
+                    }
                 }
             }
             
@@ -1108,15 +1296,21 @@
         }
         
         // End the game
+        /**
+         * Ends the game, shows the game over screen, and manages focus.
+         */
         function endGame() {
             gameActive = false;
-            gameSection.style.display = 'none';
-            gameOverScreen.style.display = 'block';
+            selectors.gameSection.style.display = 'none';
+            selectors.gameOverScreen.style.display = 'block';
+            let newHighScore = false;
+            let newAchievement = false;
             
             // Update high score
             if (mode === 'solo' && score > highScore) {
                 highScore = score;
                 localStorage.setItem('highScore', highScore);
+                newHighScore = true;
             }
             
             // Update UI for solo mode
@@ -1171,6 +1365,19 @@
                     document.getElementById('solo-final').appendChild(achDiv);
                 }
             }
+            // Prompt to view leaderboard/achievements if new high score or achievement
+            if (mode === 'solo' && (highScore > localStorage.getItem('lastHighScore') || newAchievement)) {
+                localStorage.setItem('lastHighScore', highScore); // Store last high score for comparison
+                setTimeout(() => {
+                    if (confirm('You set a new high score or unlocked achievements! View leaderboard/achievements now?')) {
+                        showLeaderboard();
+                    }
+                }, 500);
+            }
+            // Focus Play Again button for accessibility
+            setTimeout(() => {
+                if (selectors.playAgainBtn) selectors.playAgainBtn.focus();
+            }, 200);
         }
         
         // Exit game
@@ -1182,8 +1389,13 @@
         
         // Play again
         function playAgain() {
-            gameOverScreen.style.display = 'none';
-            modeSelection.style.display = 'flex';
+            selectors.gameOverScreen.style.display = 'none';
+            selectors.modeSelection.style.display = 'flex';
+            // Remove dynamic achievement divs
+            const achDivs = document.querySelectorAll('#solo-final div');
+            achDivs.forEach(div => {
+                if (div.innerHTML.includes('Achievements Unlocked:')) div.remove();
+            });
             initGame();
         }
         
@@ -1207,10 +1419,15 @@
         }
         
         // Show comic word animation
+        let comicWordTimeout = null;
         function showComicWord(text, color) {
-            comicWord.textContent = text;
-            comicWord.style.color = color;
-            comicWord.classList.add('animate');
+            if (comicWordTimeout) {
+                clearTimeout(comicWordTimeout);
+                selectors.comicWord.classList.remove('animate');
+            }
+            selectors.comicWord.textContent = text;
+            selectors.comicWord.style.color = color;
+            selectors.comicWord.classList.add('animate');
             // Play sound effect
             if (text === 'CORRECT!') {
                 playAudio('correct');
@@ -1219,8 +1436,9 @@
             } else if (text === 'TIME UP!') {
                 playAudio('timeup');
             }
-            setTimeout(() => {
-                comicWord.classList.remove('animate');
+            comicWordTimeout = setTimeout(() => {
+                selectors.comicWord.classList.remove('animate');
+                comicWordTimeout = null;
             }, 1000);
         }
         
@@ -1237,6 +1455,14 @@
             setTimeout(() => {
                 explosion.remove();
             }, 1000);
+        }
+
+        // Fisher-Yates shuffle
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
         }
 
         // Start background music after first user interaction
@@ -1273,12 +1499,13 @@
         }
         function addScoreToLeaderboard(name, score, difficulty) {
             let lb = getLeaderboard();
-            lb.push({ name, score, difficulty });
+            const color = typeof playerColor !== 'undefined' ? playerColor : '#dc2626';
+            lb.push({ name, score, difficulty, color });
             lb = lb.sort((a,b) => b.score - a.score).slice(0,5);
             saveLeaderboard(lb);
         }
         function showLeaderboard() {
-            document.querySelector('.mode-selection').style.display = 'none';
+            selectors.modeSelection.style.display = 'none';
             document.getElementById('leaderboard-screen').style.display = 'block';
             const lb = getLeaderboard();
             const list = document.getElementById('leaderboard-list');
@@ -1287,13 +1514,15 @@
                 list.innerHTML = '<li>No scores yet.</li>';
             } else {
                 lb.forEach((entry, i) => {
-                    list.innerHTML += `<li><b>${i+1}.</b> ${entry.name} (${entry.difficulty}) - <span style='color:#dc2626;'>${entry.score}</span></li>`;
+                    const color = entry.color || '#dc2626';
+                    list.innerHTML += `<li><span class='avatar-circle' style='background:${color}'></span><b>${i+1}.</b> ${sanitizeHTML(entry.name)} (${entry.difficulty}) - <span style='color:#dc2626;'>${entry.score}</span></li>`;
                 });
             }
         }
         function closeLeaderboard() {
             document.getElementById('leaderboard-screen').style.display = 'none';
-            document.querySelector('.mode-selection').style.display = 'flex';
+            selectors.modeSelection.style.display = 'flex';
+            document.querySelector('.mode-btn.solo').focus();
         }
         // Achievements
         const ACHIEVEMENTS = [
@@ -1318,7 +1547,7 @@
             }
         }
         function showAchievements() {
-            document.querySelector('.mode-selection').style.display = 'none';
+            selectors.modeSelection.style.display = 'none';
             document.getElementById('achievements-screen').style.display = 'block';
             const ach = getAchievements();
             const list = document.getElementById('achievements-list');
@@ -1334,13 +1563,42 @@
         }
         function closeAchievements() {
             document.getElementById('achievements-screen').style.display = 'none';
-            document.querySelector('.mode-selection').style.display = 'flex';
+            selectors.modeSelection.style.display = 'flex';
+            document.querySelector('.mode-btn.solo').focus();
         }
         // Hook up menu buttons
         setTimeout(() => {
             document.getElementById('leaderboard-btn').onclick = showLeaderboard;
             document.getElementById('achievements-btn').onclick = showAchievements;
         }, 0);
+
+        // --- Dynamic Question Totals ---
+        function updateQuestionTotals() {
+            const totalQuestions = filteredQuestions.length;
+            document.getElementById('current-question').nextSibling.textContent = '/' + totalQuestions;
+            document.getElementById('current-question-teams').nextSibling.textContent = '/' + totalQuestions;
+        }
+        // Call updateQuestionTotals in initGame and loadQuestion
+        // --- Clear error on profile input ---
+        playerNameInput.addEventListener('input', function() {
+            const err = document.getElementById('profile-error');
+            if (err) err.remove();
+        });
+        // --- Throttle rapid button presses ---
+        function throttle(fn, delay) {
+            let last = 0;
+            return function(...args) {
+                const now = Date.now();
+                if (now - last > delay) {
+                    last = now;
+                    fn.apply(this, args);
+                }
+            };
+        }
+        // Wrap skip, next, hint with throttle
+        document.querySelector('.btn.skip').onclick = throttle(skipQuestion, 600);
+        document.querySelector('.btn.hint').onclick = throttle(showHint, 600);
+        document.getElementById('next-btn').onclick = throttle(nextQuestion, 600);
     </script>
 </body>
 </html>
