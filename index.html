@@ -219,6 +219,13 @@
             position: relative;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             border: 3px solid #000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+        .question-container.show {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         .category {
@@ -257,12 +264,18 @@
             color: #fff;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             font-weight: 500;
             border: 2px solid #dc2626;
             box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .option.show {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         .option:hover {
@@ -609,7 +622,7 @@
                 <div class="progress-bar" id="progress-bar"></div>
             </div>
             
-            <div class="question-container fade-in">
+            <div class="question-container" id="question-container">
                 <span id="category" class="category">[Category]</span>
                 <p id="question-text" class="question-text">Question text goes here...</p>
             </div>
@@ -731,6 +744,18 @@
                     audioElements[audioType].play().catch(() => {});
                 }
             } catch (error) {}
+        }
+
+        // New helper function to explicitly stop the tick sound
+        function stopTickSound() {
+            try {
+                if (audioElements.tick) {
+                    audioElements.tick.pause();
+                    audioElements.tick.currentTime = 0;
+                }
+            } catch (error) {
+                // Fail silently, consistent with playAudio
+            }
         }
 
         // Game state
@@ -887,6 +912,8 @@
                 optionElement.textContent = option;
                 optionElement.onclick = () => selectOption(optionElement, option === question.answer);
                 optionsContainer.appendChild(optionElement);
+                // Fade-in effect
+                setTimeout(() => optionElement.classList.add('show'), 50);
             });
             
             // Reset UI state
@@ -897,6 +924,11 @@
             const progressPercentage = ((currentQuestionIndex + 1) / filteredQuestions.length) * 100;
             progressBar.style.width = `${progressPercentage}%`;
             
+            // Fade-in effect for question
+            const qCont = document.getElementById('question-container');
+            qCont.classList.remove('show');
+            setTimeout(() => qCont.classList.add('show'), 50);
+
             // Start timer
             startTimer();
         }
@@ -907,6 +939,7 @@
             
             selectedOption = element;
             clearInterval(timer);
+            stopTickSound(); // Stop tick sound immediately on selection
             
             // Disable all options
             const allOptions = document.querySelectorAll('.option');
@@ -959,18 +992,22 @@
         
         // Start timer for current question
         function startTimer() {
+            // Defensively clear any existing timer to ensure a clean start and smoothness
+            clearInterval(timer);
+
             timeLeft = 15;
             timerDisplay.textContent = timeLeft;
-            // playAudio('tick'); // This line is no longer needed as tickSound is removed
             
             timer = setInterval(() => {
                 timeLeft--;
                 timerDisplay.textContent = timeLeft;
-                playAudio('tick');
                 
                 if (timeLeft <= 0) {
                     clearInterval(timer);
+                    stopTickSound(); // Stop the last tick sound
                     timeUp();
+                } else {
+                    playAudio('tick'); // Only play tick if time is still running
                 }
             }, 1000);
         }
@@ -978,6 +1015,7 @@
         // Handle time up
         function timeUp() {
             if (selectedOption) return;
+            stopTickSound();
             
             // Disable all options
             const allOptions = document.querySelectorAll('.option');
